@@ -1,0 +1,2 @@
+# NOVEL-TECHNIQUES-FOR-PROOF-OF-SUSTAINABILITY-IN-THE-MANUFACTURING-INDUSTRY
+This is a repository containing all the documents and codes related to Zein Altawil Masters Thesis titled "NOVEL TECHNIQUES FOR PROOF OF SUSTAINABILITY IN THE MANUFACTURING INDUSTRY"
