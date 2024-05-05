@@ -1,0 +1,33 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract GarmentSC {
+    struct Garment {
+        uint256 id;
+        string garmentDetails;
+        string IPFSHash;
+        address currentOwner;
+        bool isAvailableForRent;
+    }
+
+    uint256 public nextGarmentId;
+    mapping(uint256 => Garment) public garments;
+
+    event GarmentOnboarded(uint256 indexed id, string IPFSHash, address indexed owner);
+    event OwnershipTransferred(uint256 indexed id, address indexed previousOwner, address indexed newOwner);
+
+    // Register a new garment with its details and IPFS hash for images
+    function onboardGarment(string memory _garmentDetails, string memory _IPFSHash) public {
+        uint256 garmentId = nextGarmentId++;
+        garments[garmentId] = Garment(garmentId, _garmentDetails, _IPFSHash, msg.sender, true);
+        emit GarmentOnboarded(garmentId, _IPFSHash, msg.sender);
+    }
+
+    // Update garment ownership and availability status
+    function transferOwnership(uint256 _garmentId, address _newOwner) public {
+        require(msg.sender == garments[_garmentId].currentOwner, "Only the current owner can transfer ownership.");
+        garments[_garmentId].currentOwner = _newOwner;
+        garments[_garmentId].isAvailableForRent = false;  // Set to false upon ownership transfer
+        emit OwnershipTransferred(_garmentId, msg.sender, _newOwner);
+    }
+}
