@@ -1,0 +1,80 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract ApprovalOfCertificationSC {
+    // Define contract state variables
+    address public owner;                // Address of the contract owner
+    address public certificationAgency;  // Address of the certification agency
+    
+    // Define a struct to represent a certification request
+    struct CertificationRequest {
+        address requester;       // Address of the requester (e.g., Farmer)
+        string documentsHash;   // IPFS or file hash of the submitted documents
+        bool isApproved;        // Flag indicating if the request is approved
+    }
+    
+    // Create a mapping to store certification requests by requester's address
+    mapping(address => CertificationRequest) public certificationRequests;
+
+    // Define events to log important contract actions
+    event RequestSubmitted(address indexed requester, string documentsHash);
+    event CertificationApproved(address indexed requester);
+    event CertificationRejected(address indexed requester);
+
+    // Define a modifier to restrict access to the contract owner
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Only the contract owner can call this function");
+        _;
+    }
+    
+    // Define a modifier to restrict access to the certification agency
+    modifier onlyCertificationAgency() {
+        require(msg.sender == certificationAgency, "Only the certification agency can call this function");
+        _;
+    }
+
+    // Constructor to set the contract owner
+    constructor() {
+        owner = msg.sender;
+    }
+
+    // Function to set the certification agency's address (only callable by the owner)
+    function setCertificationAgency(address _certificationAgency) public onlyOwner {
+        certificationAgency = _certificationAgency;
+    }
+
+    // Function for a requester to submit a certification request with document hash
+    function submitCertificationRequest(string memory _documentsHash) public {
+        require(certificationAgency != address(0), "Certification agency address is not set");
+        require(certificationRequests[msg.sender].requester == address(0), "Certification request already submitted");
+
+        certificationRequests[msg.sender] = CertificationRequest({
+            requester: msg.sender,
+            documentsHash: _documentsHash,
+            isApproved: false
+        });
+
+        emit RequestSubmitted(msg.sender, _documentsHash);
+    }
+
+    // Function for the certification agency to approve a certification request
+    function approveCertification(address _requester) public onlyCertificationAgency {
+        CertificationRequest storage request = certificationRequests[_requester];
+        require(request.requester != address(0), "Certification request not found");
+        require(!request.isApproved, "Certification request already approved");
+
+        request.isApproved = true;
+        emit CertificationApproved(_requester);
+    }
+
+    // Function for the certification agency to reject a certification request
+    function rejectCertification(address _requester) public onlyCertificationAgency {
+        CertificationRequest storage request = certificationRequests[_requester];
+        require(request.requester != address(0), "Certification request not found");
+        require(!request.isApproved, "Certification request already approved");
+
+        delete certificationRequests[_requester];
+        emit CertificationRejected(_requester);
+    }
+}
+
