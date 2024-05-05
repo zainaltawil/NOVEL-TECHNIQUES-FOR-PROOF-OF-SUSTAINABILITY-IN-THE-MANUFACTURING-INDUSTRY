@@ -1,0 +1,39 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract RentalAgreementSC {
+    struct Rental {
+        uint256 garmentId;
+        address rentee;
+        uint256 startDate;
+        uint256 endDate;
+        bool isActive;
+    }
+
+    uint256 public nextRentalId;
+    mapping(uint256 => Rental) public rentals;
+
+    event RentalInitiated(uint256 indexed rentalId, uint256 indexed garmentId, address indexed rentee, uint256 startDate, uint256 endDate);
+    event RentalConcluded(uint256 indexed rentalId, uint256 indexed garmentId, address indexed rentee);
+    event DepositRefunded(uint256 indexed rentalId);
+    event DepositWithheld(uint256 indexed rentalId);
+
+    // Initiate a rental agreement
+    function initiateRental(uint256 _garmentId, address _rentee, uint256 _duration) public {
+        uint256 rentalId = nextRentalId++;
+        rentals[rentalId] = Rental(_garmentId, _rentee, block.timestamp, block.timestamp + _duration, true);
+        emit RentalInitiated(rentalId, _garmentId, _rentee, block.timestamp, block.timestamp + _duration);
+    }
+
+    // Conclude a rental and handle deposit logic
+    function concludeRental(uint256 _rentalId, bool _isReturnedInGoodCondition) public {
+        require(rentals[_rentalId].isActive, "Rental is not active.");
+        rentals[_rentalId].isActive = false;
+        if (_isReturnedInGoodCondition) {
+            emit DepositRefunded(_rentalId);
+        } else {
+            emit DepositWithheld(_rentalId);
+        }
+        emit RentalConcluded(_rentalId, rentals[_rentalId].garmentId, rentals[_rentalId].rentee);
+    }
+}
