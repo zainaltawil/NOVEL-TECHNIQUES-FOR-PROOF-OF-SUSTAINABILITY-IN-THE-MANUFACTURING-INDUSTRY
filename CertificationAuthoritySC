@@ -1,0 +1,27 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract CertificationAuthoritySC {
+    struct RecycledGarment {
+        uint garmentId;
+        bool isCertified;
+        string details;
+    }
+
+    mapping(uint => RecycledGarment) public certifiedGarments;
+
+    // Updated event to include certification details for more meaningful logging
+    event GarmentCertified(uint garmentId, string details, bool isCertified);
+
+    function certifyGarment(uint _garmentId, string memory _details) public {
+        RecycledGarment storage garment = certifiedGarments[_garmentId];
+        require(!garment.isCertified, "Garment already certified");
+        garment.isCertified = true;
+        garment.details = _details;
+        emit GarmentCertified(_garmentId, _details, true);  // Include details and certification status in the event
+    }
+
+    function isGarmentCertified(uint _garmentId) public view returns (bool) {
+        return certifiedGarments[_garmentId].isCertified;
+    }
+}
