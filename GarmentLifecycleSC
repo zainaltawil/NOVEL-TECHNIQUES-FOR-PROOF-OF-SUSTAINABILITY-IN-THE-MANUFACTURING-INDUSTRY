@@ -1,0 +1,46 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+enum GarmentStatus { Pending, Recycled, Reused, Landfilled }
+
+contract GarmentLifecycleSC {
+    struct Garment {
+        uint id;
+        string description;
+        GarmentStatus status;
+    }
+
+    mapping(uint => Garment) public garments;
+    uint public lastGarmentId;
+
+    // Event with a string status
+    event GarmentStatusUpdated(uint garmentId, string status);
+
+    function disposeGarment(string memory _description) public {
+        lastGarmentId++;
+        garments[lastGarmentId] = Garment(lastGarmentId, _description, GarmentStatus.Pending);
+        // Emit initial status as a string
+        emit GarmentStatusUpdated(lastGarmentId, statusToString(GarmentStatus.Pending));
+    }
+
+    function sortGarment(uint _garmentId, GarmentStatus _status) public {
+        require(garments[_garmentId].id != 0, "Garment ID does not exist");
+        require(uint(_status) > uint(garments[_garmentId].status), "Invalid status transition");
+        garments[_garmentId].status = _status;
+        // Emit updated status as a string
+        emit GarmentStatusUpdated(_garmentId, statusToString(_status));
+    }
+
+    function getGarmentDetails(uint _garmentId) public view returns (Garment memory) {
+        return garments[_garmentId];
+    }
+
+    // Helper function to convert status enum to string
+    function statusToString(GarmentStatus _status) internal pure returns (string memory) {
+        if (_status == GarmentStatus.Pending) return "Pending";
+        if (_status == GarmentStatus.Recycled) return "Recycled";
+        if (_status == GarmentStatus.Reused) return "Reused";
+        if (_status == GarmentStatus.Landfilled) return "Landfilled";
+        revert("Unknown status");
+    }
+}
